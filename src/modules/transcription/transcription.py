@@ -24,21 +24,46 @@ class TranscriptionModule():
 
     def transcribe(self, 
                    audio_array : np.ndarray,
+                   vad_segmented_audio_info : dict,
                    temperature : float = 0.0,
                    compression_ratio_threshold : int = 2,
                    condition_on_previous_text : bool = False,
+                   beam_size : int = 5,
+                   sample_rate : int = 16000
                    ) -> str :
         
         audio_array = audio_array.astype(np.float32)
-        rate = 16000
        
-        scaled = np.int16(audio_array / np.max(np.abs(audio_array)) * 32767)
-        write('test_processed.wav', rate, scaled)
+        
         transcript = self.model.transcribe(audio_array,
                                            temperature = temperature,
                                            compression_ratio_threshold = compression_ratio_threshold,
-                                           condition_on_previous_text = condition_on_previous_text)
-        return transcript['text']
+                                           condition_on_previous_text = condition_on_previous_text,
+                                           beam_size = beam_size,
+                                           )
+        
+        transcript_segments = transcript['segments']
 
+        transcript_segments = self.realign_whisper_segments(transcript_segments, 
+                                                            vad_segmented_audio_info = vad_segmented_audio_info,
+                                                            sample_rate=sample_rate)
+
+        return transcript_segments
+    
+
+    def realign_whisper_segments(self, 
+                                 transcript_segments : dict,
+                                 vad_segmented_audio_info : dict,
+                                 sample_rate : int = 16000) -> dict : 
+        
+        for segment in transcript_segments :
+            for vad_segment_info in vad_segmented_audio_info :
+                if vad_segment_info['start'] <= segment['start']*sample_rate < vad_segment_info['end'] :
+                    segment['start'] = segment['start'] + int(vad_segment_info['silence_signal_removed']/sample_rate)
+
+                if vad_segment_info['start'] <= segment['end']*sample_rate < vad_segment_info['end'] :
+                    segment['end'] = segment['end'] + int(vad_segment_info['silence_signal_removed']/sample_rate)
+
+        return transcript_segments
 
 
