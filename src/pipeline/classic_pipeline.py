@@ -1,6 +1,6 @@
 from modules import TranscriptionModule, VADModule, SpeakerRecogntionModule
 import numpy as np 
-from utils import load_audio
+from utils import load_audio, write_transcription
 
 
 
@@ -15,7 +15,8 @@ class FullTranscriptPipeline():
     
     def process(self,
                 audio_path : str,
-                do_vad_bool : bool = True
+                do_vad_bool : bool = True,
+                do_diarization : bool = True,
                   ):
         
         audio, sr = load_audio(audio_path = audio_path)
@@ -23,16 +24,18 @@ class FullTranscriptPipeline():
         if do_vad_bool :
             speech_timestamps = self.vad_module.detect_speech_segments(audio = audio)
 
-            segmented_audio, vad_segmented_audio_info = self.vad_module.segmentation(audio = audio,
+            segmented_audio, vad_audio_timestamps = self.vad_module.segmentation(audio = audio,
                                                            speech_timestamps = speech_timestamps)
             
-        whisper_segments = self.transcription_module.transcribe(segmented_audio,
-                                                                vad_segmented_audio_info=vad_segmented_audio_info)
+        transcription_segments = self.transcription_module.transcribe(segmented_audio,
+                                                                vad_audio_timestamps=vad_audio_timestamps)
 
-        speaker_recognition_segments = self.speaker_recognition.process_audio(whisper_segments=whisper_segments,
-                                                                                   audio=audio)
-        # print(transcription['segments'])
-        print(speaker_recognition_segments)
+        if do_diarization : 
+            transcription_segments = self.speaker_recognition.process_audio(transcription_segments=transcription_segments,
+                                                                                    audio=audio)
+        
+        write_transcription(transcription_segments)
+        
 
 
 

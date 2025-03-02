@@ -4,6 +4,8 @@ import urllib.request
 import numpy as np 
 from silero_vad import get_speech_timestamps
 from typing import Dict, List, Tuple 
+from .types import VADSegmentOutput
+
 
 class VADModule():
 
@@ -33,7 +35,10 @@ class VADModule():
             neg_threshold = neg_threshold,
             min_silence_duration_ms = min_silence_duration_ms,
             min_speech_duration_ms = min_speech_duration_ms,
+            return_seconds = True,
             )
+        
+
         
         return speech_timestamps
     
@@ -49,38 +54,48 @@ class VADModule():
         end = 0 
         last_end = 0
         silence_signal_removed = 0 
-        segmented_audio_info = list()
+        vad_audio_timestamps = list()
 
         for segment in speech_timestamps :
 
             last_end = end 
 
-            start = int(segment['start']) - int((overlap_ms/1000)*sr)
+            start = float((segment['start']) - float((overlap_ms/1000)))
             if start < 0 : 
                 start = 0 
          
-            end = int(segment['end']) + int((overlap_ms/1000)*sr)
+            end = float((segment['end']) + float((overlap_ms/1000)))
             
 
-            if int(len(audio)) - end < 0:
+            if int(audio.size) - end < 0:
                 end = int(len(audio)) 
            
 
-            audio_slice = audio[start : end]
+            audio_slice = audio[int(start*sr) : int(end*sr)]
 
-            print(segmented_audio.size)
+
             silence_signal_removed = silence_signal_removed + start - last_end
-            segmented_audio_info.append({
-                "vad_segment_idx" : len(segmented_audio_info) + 1, 
-                "silence_signal_removed" : silence_signal_removed,
-                "start": segmented_audio.size,
-                "end" : segmented_audio.size + audio_slice.size,
-            })
+
+            # segmented_audio_info.append({
+            #     "vad_segment_idx" : len(segmented_audio_info) + 1, 
+            #     "silence_signal_removed" : silence_signal_removed,
+            #     "start": segmented_audio.size,
+            #     "end" : segmented_audio.size + audio_slice.size,
+            # })
+
+            vad_audio_timestamps.append(VADSegmentOutput(
+                idx=len(vad_audio_timestamps) + 1,
+                start=start,
+                end=end,
+                silence_removed=silence_signal_removed
+            ))
+
 
             segmented_audio = np.concatenate((segmented_audio, audio_slice))
+
+  
         
-        
-        return segmented_audio, segmented_audio_info          
+        return segmented_audio, vad_audio_timestamps          
 
 
 

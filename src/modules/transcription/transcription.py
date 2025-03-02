@@ -2,6 +2,12 @@ import whisper
 import numpy as np 
 import os 
 from scipy.io.wavfile import write
+from ..vad.types import VADSegmentOutput
+from typing import List
+from ..types import TranscriptionOutput
+
+
+
 
 class TranscriptionModule():
 
@@ -24,7 +30,7 @@ class TranscriptionModule():
 
     def transcribe(self, 
                    audio_array : np.ndarray,
-                   vad_segmented_audio_info : dict,
+                   vad_audio_timestamps : List[VADSegmentOutput],
                    temperature : float = 0.0,
                    compression_ratio_threshold : int = 2,
                    condition_on_previous_text : bool = False,
@@ -45,7 +51,7 @@ class TranscriptionModule():
         transcript_segments = transcript['segments']
 
         transcript_segments = self.realign_whisper_segments(transcript_segments, 
-                                                            vad_segmented_audio_info = vad_segmented_audio_info,
+                                                            vad_audio_timestamps = vad_audio_timestamps,
                                                             sample_rate=sample_rate)
 
         return transcript_segments
@@ -53,17 +59,41 @@ class TranscriptionModule():
 
     def realign_whisper_segments(self, 
                                  transcript_segments : dict,
-                                 vad_segmented_audio_info : dict,
-                                 sample_rate : int = 16000) -> dict : 
+                                 vad_audio_timestamps : List[VADSegmentOutput],
+                                 sample_rate : int = 16000) -> List[TranscriptionOutput] : 
         
+        realigned_segments = []
+        i = 1
+
         for segment in transcript_segments :
-            for vad_segment_info in vad_segmented_audio_info :
-                if vad_segment_info['start'] <= segment['start']*sample_rate < vad_segment_info['end'] :
-                    segment['start'] = segment['start'] + int(vad_segment_info['silence_signal_removed']/sample_rate)
 
-                if vad_segment_info['start'] <= segment['end']*sample_rate < vad_segment_info['end'] :
-                    segment['end'] = segment['end'] + int(vad_segment_info['silence_signal_removed']/sample_rate)
+            for vad_seg_idx, vad_segment in enumerate(vad_audio_timestamps) :
+                
+                new_start = segment['start']
+                new_end = segment['end']
 
-        return transcript_segments
+                if vad_segment.start <= segment['start'] < vad_segment.end :
+
+                    new_start += vad_segment.silence_removed
+
+                    
+
+                    if not vad_segment.start <= segment['end'] < vad_segment.end : 
+                        new_end += vad_audio_timestamps[vad_seg_idx].silence_removed
+                    
+                    else : 
+                        new_end += vad_segment.silence_removed
+
+            realigned_segments.append(TranscriptionOutput(
+                    idx = i,
+                    transcription=segment['text'],
+                    start = new_start,
+                    end = new_end
+                ))
+            i+=1
+
+        print(realigned_segments)
+
+        return realigned_segments
 
 
