@@ -3,14 +3,15 @@ from .type import AudioSegment
 import torch
 from typing import List, Tuple
 import numpy as np 
-import hdbscan
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import silhouette_score
 from sklearn.metrics.pairwise import cosine_distances
 import matplotlib.pyplot as plt
 from ..types import TranscriptionOutput
-
-
+from scipy.spatial.distance import pdist, squareform
+from scipy.cluster.hierarchy import linkage, fcluster, dendrogram
+import soundfile as sf
+import os 
 class SpeakerRecogntionModule():
 
     def __init__(self, 
@@ -18,7 +19,8 @@ class SpeakerRecogntionModule():
                  max_speakers=5, 
                  threshold=0.5):
 
-        self.model = EncoderClassifier.from_hparams("speechbrain/spkrec-ecapa-voxceleb", savedir=".models")
+        self.model_dir_path = os.path.join(os.path.dirname(__file__), 'models')
+        self.model = EncoderClassifier.from_hparams("speechbrain/spkrec-ecapa-voxceleb", savedir=self.model_dir_path)
 
         self.embeddings_storage = []
 
@@ -39,7 +41,7 @@ class SpeakerRecogntionModule():
         audio = torch.tensor(audio)
         #audio_tensors_list = []
         embeddings_list = []
-
+ 
         for segment in segments:
 
                 start_idx = int(segment.start * sample_rate)
@@ -47,7 +49,9 @@ class SpeakerRecogntionModule():
 
           
                 audio_slice = audio[start_idx:end_idx]  
-            
+
+                audio_slice = audio_slice / torch.max(torch.abs(audio_slice))
+
                 speaker_embedding = self.model.encode_batch(audio_slice).squeeze().cpu().numpy()
                 embeddings_list.append(speaker_embedding)
 
@@ -90,30 +94,44 @@ class SpeakerRecogntionModule():
 
    
         distance_matrix = cosine_distances(embeddings)
+        cosine_dist_vector  = squareform(distance_matrix)
 
+        Z = linkage(cosine_dist_vector, method='complete')
+        plt.figure(figsize=(8, 5))
+        dendrogram(Z)
+        plt.title("Hierarchical Clustering Dendrogram")
+        plt.xlabel("Data Points")
+        plt.ylabel("Distance")
+        plt.show()
 
 
         for n_clusters in range(self.min_speakers, self.max_speakers + 1):
             
             clustering_model = AgglomerativeClustering(n_clusters=n_clusters, 
-                                                    linkage= 'average',
-                                                    metric='precomputed', 
+                                                    linkage= 'complete',
+                                                    metric='cosine', 
                                                     )
             
-            labels = clustering_model.fit_predict(distance_matrix)
+            labels = clustering_model.fit_predict(embeddings)
     
             # Compute silhouette score (higher is better)
             if len(set(labels)) > 1:  # Avoid single-cluster case
 
-                score = silhouette_score(distance_matrix, labels, metric='precomputed')
+                score = silhouette_score(distance_matrix, labels, metric='cosine')
                 scores.append(score)
 
                 if score > best_score:
                     best_score = score
-                    speaker_labels = labels
+                    cluesters_nb = n_clusters
 
+
+
+
+        labels = fcluster(Z, t=cluesters_nb, criterion='maxclust')
+
+
+        print(labels)
         # Plot silhouette scores to visualize best number of clusters
-
         if visualize_nb_speaker_probs : 
 
             plt.plot(range(self.min_speakers, self.max_speakers + 1), scores, marker='o')
@@ -122,7 +140,7 @@ class SpeakerRecogntionModule():
             plt.title("Silhouette Score vs. Number of Clusters")
             plt.show()
 
-        return speaker_labels
+        return labels
     
 
     def process_audio(self, audio: np.ndarray, 

@@ -1,4 +1,4 @@
-from modules import TranscriptionModule, VADModule, SpeakerRecogntionModule
+from src.modules import TranscriptionModule, VADModule, SpeakerRecogntionModule
 import numpy as np 
 from utils import load_audio, write_transcription
 
@@ -34,11 +34,13 @@ class FullTranscriptPipeline():
             transcription_segments = self.speaker_recognition.process_audio(transcription_segments=transcription_segments,
                                                                                     audio=audio)
         
-        write_transcription(transcription_segments)
+        return transcription_segments
         
 
 
 
 if __name__ == '__main__':
     Pipe = FullTranscriptPipeline()
-    Pipe.process('test.wav')
+    transcription_segments = Pipe.process('test.wav')
+    write_transcription(transcription_segments)
+        

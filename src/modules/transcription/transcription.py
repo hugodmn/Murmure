@@ -5,6 +5,7 @@ from scipy.io.wavfile import write
 from ..vad.types import VADSegmentOutput
 from typing import List
 from ..types import TranscriptionOutput
+import torch
 
 
 
@@ -17,15 +18,19 @@ class TranscriptionModule():
         self.model_dir_path = os.path.join(os.path.dirname(__file__), 'models')
         self.model_path = os.path.join(self.model_dir_path, model_size)
 
+        if torch.cuda.is_available():
+            self.device = 'cuda'
+        else:
+            self.device = 'cpu'
 
         os.makedirs("models", exist_ok = True)
 
         if not os.path.exists(self.model_path):
             print(f"Model '{model_size}' not found locally. Downloading...")
-            self.model = whisper.load_model(model_size, download_root=self.model_path)
+            self.model = whisper.load_model(model_size, download_root=self.model_path, device=self.device)
         else:
             print(f"Loading existing model '{model_size}' from '{self.model_path}'")
-            self.model = whisper.load_model(model_size, download_root=self.model_path)
+            self.model = whisper.load_model(model_size, download_root=self.model_path, device=self.device)
 
 
     def transcribe(self, 

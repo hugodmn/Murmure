@@ -82,18 +82,19 @@ class VADModule():
             #     "start": segmented_audio.size,
             #     "end" : segmented_audio.size + audio_slice.size,
             # })
+          
 
             vad_audio_timestamps.append(VADSegmentOutput(
                 idx=len(vad_audio_timestamps) + 1,
-                start=start,
-                end=end,
+                start=segmented_audio.size/sr,
+                end=(segmented_audio.size + audio_slice.size)/sr,
                 silence_removed=silence_signal_removed
             ))
 
 
             segmented_audio = np.concatenate((segmented_audio, audio_slice))
 
-  
+        print(vad_audio_timestamps)
         
         return segmented_audio, vad_audio_timestamps          
 
