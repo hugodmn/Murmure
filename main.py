@@ -8,7 +8,9 @@ def process_audio(path, model_size, use_vad, use_diarization):
     """
     Process an audio file or all audio files in a folder using FullTranscriptPipeline.
     """
-    Pipe = FullTranscriptPipeline(model_size=model_size, vad=use_vad, diarization=use_diarization)
+    Pipe = FullTranscriptPipeline(model_size=model_size, 
+                                  do_vad=use_vad, 
+                                  do_diarization=use_diarization)
 
     if os.path.isfile(path):  
         print(f"Processing single file: {path}")

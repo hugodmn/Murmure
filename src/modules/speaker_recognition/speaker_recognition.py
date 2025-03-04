@@ -16,7 +16,7 @@ class SpeakerRecogntionModule():
 
     def __init__(self, 
                  min_speakers=2, 
-                 max_speakers=5, 
+                 max_speakers=8, 
                  threshold=0.5):
 
         self.model_dir_path = os.path.join(os.path.dirname(__file__), 'models')
@@ -24,11 +24,9 @@ class SpeakerRecogntionModule():
 
         self.embeddings_storage = []
 
-        self.similarity = torch.nn.CosineSimilarity(dim=-1, eps=1e-6)
-
         self.min_speakers = min_speakers
         self.max_speakers = max_speakers
-        self.threshold = threshold
+   
 
     def compute_embeddings(self, 
                            audio: np.ndarray, 
@@ -77,7 +75,7 @@ class SpeakerRecogntionModule():
 
     def cluster_speakers(self, 
                          embeddings: np.ndarray,
-                         visualize_nb_speaker_probs : bool = False) -> np.ndarray:
+                         visualize_nb_speaker_probs : bool = True) -> np.ndarray:
         """
         Clusterise les embeddings avec Agglomerative Clustering.
         :param embeddings: Liste des embeddings des segments.
@@ -97,27 +95,20 @@ class SpeakerRecogntionModule():
         cosine_dist_vector  = squareform(distance_matrix)
 
         Z = linkage(cosine_dist_vector, method='complete')
-        plt.figure(figsize=(8, 5))
-        dendrogram(Z)
-        plt.title("Hierarchical Clustering Dendrogram")
-        plt.xlabel("Data Points")
-        plt.ylabel("Distance")
-        plt.show()
-
 
         for n_clusters in range(self.min_speakers, self.max_speakers + 1):
             
             clustering_model = AgglomerativeClustering(n_clusters=n_clusters, 
                                                     linkage= 'complete',
-                                                    metric='cosine', 
+                                                    metric='precomputed', 
                                                     )
             
-            labels = clustering_model.fit_predict(embeddings)
+            labels = clustering_model.fit_predict(distance_matrix)
     
-            # Compute silhouette score (higher is better)
+            # # Compute silhouette score (higher is better)
             if len(set(labels)) > 1:  # Avoid single-cluster case
 
-                score = silhouette_score(distance_matrix, labels, metric='cosine')
+                score = silhouette_score(distance_matrix, labels, metric='precomputed')
                 scores.append(score)
 
                 if score > best_score:
@@ -130,7 +121,7 @@ class SpeakerRecogntionModule():
         labels = fcluster(Z, t=cluesters_nb, criterion='maxclust')
 
 
-        print(labels)
+
         # Plot silhouette scores to visualize best number of clusters
         if visualize_nb_speaker_probs : 
 
@@ -153,7 +144,7 @@ class SpeakerRecogntionModule():
                                              sample_rate)
         
         speaker_labels = self.cluster_speakers(embeddings,
-                                               visualize_nb_speaker_probs = False)
+                                               visualize_nb_speaker_probs = True)
 
 
 

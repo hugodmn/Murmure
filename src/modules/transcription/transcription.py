@@ -97,8 +97,6 @@ class TranscriptionModule():
                 ))
             i+=1
 
-        print(realigned_segments)
-
         return realigned_segments
 
 

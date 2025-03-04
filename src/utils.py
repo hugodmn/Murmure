@@ -1,7 +1,7 @@
 import librosa 
 from typing import Tuple, List 
 import numpy as np 
-from modules import TranscriptionOutput
+from src.modules import TranscriptionOutput
 
 
 def load_audio(audio_path : str,
@@ -14,7 +14,7 @@ def load_audio(audio_path : str,
 
 
 def write_transcription(audio_segments: List[TranscriptionOutput], 
-                        file_path: str = "../transcriptions/test.txt") -> None:
+                        file_path: str = "transcriptions/test.txt") -> None:
     """
     Writes the transcriptions from a list of AudioSegment objects to a text file.
     Merges consecutive segments if they are from the same speaker.

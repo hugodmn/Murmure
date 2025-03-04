@@ -94,7 +94,6 @@ class VADModule():
 
             segmented_audio = np.concatenate((segmented_audio, audio_slice))
 
-        print(vad_audio_timestamps)
         
         return segmented_audio, vad_audio_timestamps          
 
