@@ -58,10 +58,10 @@ python main.py path/to/audio.wav --model large
 ## Disable Voice Activity Detection (VAD)
 
 By default, **Voice Activity Detection (VAD)** using **Silero VAD** is enabled.  
-If you want to **disable VAD**, use:
+If you want to disable VAD, use:
 
 ```sh
-python main.py path/to/audio.wav --no-vad
+python main.py path/to/audio.wav --vad False
 ```
 
 ### Disable Speaker Diarization 
