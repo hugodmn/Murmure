@@ -35,22 +35,21 @@ murmure --help
 ## 🚀 Utilisation
 
 ```bash
-murmure path/to/audio.wav --model medium --vad --diarization
+murmure path/to/audio.wav --model medium
 ```
 
 ### Options :
 
-| Argument        | Description                                              |
-|----------------|----------------------------------------------------------|
-| `path`          | Chemin vers un fichier ou dossier audio (`.wav`, `.mp3`)|
-| `--model`       | Taille du modèle Whisper : `tiny`, `base`, `small`, `medium`, `large` |
-| `--vad`         | Active la détection d’activité vocale                   |
-| `--diarization` | Active la diarisation des locuteurs                     |
-| `--device`      | **Optionnel**. Forcer un device : `cpu`, `cuda`, ou `mps` |
+| Argument           | Description                                                |
+|--------------------|------------------------------------------------------------|
+| `path`             | Chemin vers un fichier ou un dossier audio (`.wav`, `.mp3`)|
+| `--model`          | Taille du modèle Whisper : `tiny`, `base`, `small`, `medium`, `large` |
+| `--no-vad`         | Désactive la détection d’activité vocale (VAD)            |
+| `--no-diarization` | Désactive la diarisation des locuteurs                    |
+| `--device`         | Forcer un device spécifique : `cpu`, `cuda`, `mps`         |
 
-> ℹ️ **Le device est automatiquement détecté** (CUDA > MPS > CPU).  
-> Utilisez `--device` uniquement si vous souhaitez forcer un comportement spécifique.
-
+> ℹ️ **Par défaut**, la VAD (`--no-vad`) et la diarisation (`--no-diarization`) sont **activées automatiquement**.  
+> Vous pouvez les désactiver individuellement en ajoutant l'option correspondante.
 ---
 
 ## 💻 Support des devices

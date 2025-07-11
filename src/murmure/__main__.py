@@ -45,8 +45,9 @@ def main():
     parser.add_argument("path", type=str, help="Path to an audio file or a directory containing audio files (.wav, .mp3).")
     parser.add_argument("--model", type=str, default="medium", choices=["tiny", "base", "small", "medium", "large"],
                         help="Whisper model size (default: medium).")
-    parser.add_argument("--vad", action="store_true", help="Enable Voice Activity Detection (VAD).", default = True)
-    parser.add_argument("--diarization", action="store_true", help="Enable Speaker Diarization.", default = True)
+    parser.add_argument("--no-vad", action="store_false", dest="vad", help="Disable Voice Activity Detection (VAD).")
+    parser.add_argument("--no-diarization", action="store_false", dest="diarization", help="Disable Speaker Diarization.")
+
     parser.add_argument("--device", type=str, choices=["cpu", "cuda", "mps"], help="Device to use (default: auto-detect)")
 
     settings = Settings()
