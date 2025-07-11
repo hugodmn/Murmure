@@ -1,5 +1,8 @@
 **__pycache__**
-src/test.wav
-src/modules/transcription/models/*
-src/modules/speaker_recognition/models/*
-transcription/test.txt
+
+models/transcription
+models/vad
+build
+src/murmure.egg
+transcription/** 
+
