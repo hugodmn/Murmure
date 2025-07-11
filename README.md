@@ -1,75 +1,127 @@
-# Audio Transcription Pipeline
+# 🧠 Murmure – Audio Transcription Pipeline
 
-## Overview
-This project provides an **automatic speech transcription** pipeline using:
-- **Whisper** for speech-to-text transcription.
-- **Silero VAD** for **Voice Activity Detection (VAD)**.
-- **ECAPA-TDNN** embeddings with **Agglomerative Clustering** for **Speaker Diarization**.
+**Murmure** est une pipeline modulaire de transcription audio combinant :
 
-The pipeline can process:
-- **Single audio files** (`.wav`, `.mp3`).
-- **Folders of audio files** (batch processing).
-- **Different Whisper model sizes** (`tiny`, `base`, `small`, `medium`, `large`).
-- **Optional VAD and Speaker Diarization**.
+- [Whisper](https://github.com/openai/whisper) d’OpenAI pour la reconnaissance vocale  
+- [Silero VAD](https://github.com/snakers4/silero-vad) pour la détection d’activité vocale  
+- Diarisation des locuteurs (optionnelle)  
+- Accélération via `whisper.cpp` sur Apple Silicon (M1/M2)
 
-## Installation
+---
 
-### Clone the repository
+## 📦 Installation
 
-```sh
-git clone https://github.com/hugodmn/Murmure.git
-cd Murmure
+1. Clonez le dépôt :
+
+```bash
+git clone https://github.com/hugodmn/murmure.git  
+cd murmure
 ```
 
-### Install dependencies
+2. Installez la bibliothèque localement :
 
-```sh
-pip install -r requirements.txt
+```bash
+pip install .
 ```
 
-## Usage
+> Vous pouvez maintenant exécuter la CLI avec :
 
-Run the `main.py` script with different options.
-
-### Transcribe a Single Audio File
-
-```sh
-python main.py path/to/audio.wav
+```bash
+murmure --help
 ```
 
-### Process All Files in a Folder
+---
 
-```sh
-python main.py path/to/folder
+## 🚀 Utilisation
+
+```bash
+murmure path/to/audio.wav --model medium --vad --diarization
 ```
 
-### Change the Whisper Model Size
+### Options :
 
-```sh
-python main.py path/to/audio.wav --model large
+| Argument        | Description                                              |
+|----------------|----------------------------------------------------------|
+| `path`          | Chemin vers un fichier ou dossier audio (`.wav`, `.mp3`)|
+| `--model`       | Taille du modèle Whisper : `tiny`, `base`, `small`, `medium`, `large` |
+| `--vad`         | Active la détection d’activité vocale                   |
+| `--diarization` | Active la diarisation des locuteurs                     |
+| `--device`      | **Optionnel**. Forcer un device : `cpu`, `cuda`, ou `mps` |
+
+> ℹ️ **Le device est automatiquement détecté** (CUDA > MPS > CPU).  
+> Utilisez `--device` uniquement si vous souhaitez forcer un comportement spécifique.
+
+---
+
+## 💻 Support des devices
+
+### ✅ Détection automatique
+
+Par défaut, Murmure choisit le meilleur device disponible dans cet ordre :
+
+1. `cuda` (GPU NVIDIA)
+2. `mps` (Apple Silicon)
+3. `cpu` (fallback)
+
+### ✅ CPU (par défaut si rien d’autre)
+
+```bash
+murmure path.wav
 ```
-**Available model sizes:**
-- **`tiny`**
-- **`base`**
-- **`small`**
-- **`medium`** (default)
-- **`large`**
 
-## Disable Voice Activity Detection (VAD)
+### ✅ CUDA GPU
 
-By default, **Voice Activity Detection (VAD)** using **Silero VAD** is enabled.  
-If you want to disable VAD, use:
-
-```sh
-python main.py path/to/audio.wav --vad False
+```bash
+murmure path.wav --device cuda
 ```
 
-### Disable Speaker Diarization 
+> Nécessite une carte NVIDIA et des drivers CUDA.
 
-By default, Speaker Diarization using ECAPA-TDNN is enabled.
-If you want to disable diarization, use:
+### ✅ Apple Silicon (M1/M2) avec MPS
 
-```sh
-python main.py path/to/audio.wav --diarization False 
+```bash
+murmure path.wav --device mps
 ```
 
+> Pour utiliser `mps`, Murmure s'appuie sur [whisper.cpp](https://github.com/ggerganov/whisper.cpp)
+
+---
+
+## ⚙️ Installation manuelle de `whisper.cpp` (MPS uniquement)
+
+1. Clonez le dépôt officiel :
+
+```bash
+git clone https://github.com/ggerganov/whisper.cpp.git  
+cd whisper.cpp
+```
+
+2. Compilez le projet :
+
+```bash
+cmake -B build  
+cmake --build build -j
+```
+
+3. Rendez le binaire exécutable :
+
+```bash
+chmod +x build/bin/whisper-cli
+```
+
+4. C’est tout !
+
+Murmure détectera automatiquement le binaire `whisper-cli` si placé dans le dossier `whisper.cpp/build/bin`.  
+Sinon, une erreur claire sera levée si vous utilisez `--device mps`.
+
+---
+
+## 🔧 Exemple complet
+
+```bash
+murmure /path/to/audio.wav --model small --vad --diarization
+```
+
+```bash
+murmure /path/to/audio.wav --model base --device mps --vad
+```

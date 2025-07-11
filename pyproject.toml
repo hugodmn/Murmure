@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "murmure"
+version = "0.1.0"
+description = "Transcription and speech processing library"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+    { name = "Hugo Daumain", email = "daumainhugo@gmail.com" }
+]
+license = { text = "MIT" }
+
+dependencies = [
+    "numpy",
+    "torch",
+    "transformers",
+    "soundfile",
+    "tqdm",
+    "requests"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "black",
+    "mypy"
+]
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

@@ -7,4 +7,5 @@ scipy==1.15.2
 silero_vad==5.1.2
 soundfile==0.12.1
 speechbrain==1.0.2
+transformers
 torch
