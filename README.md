@@ -14,7 +14,7 @@
 1. Clonez le dépôt :
 
 ```bash
-git clone https://github.com/hugodmn/murmure.git  
+git clone https://github.com/your-user/murmure.git  
 cd murmure
 ```
 
@@ -89,16 +89,26 @@ murmure path.wav --device mps
 
 ## ⚙️ Installation manuelle de `whisper.cpp` (MPS uniquement)
 
-1. Clonez le dépôt officiel :
+⚠️ **Important** : Vous devez **cloner `whisper.cpp` dans le dossier racine du projet Murmure**,  
+à cet emplacement exact :
+
+```
+murmure/whisper.cpp
+```
+
+### Étapes :
+
+1. Clonez `whisper.cpp` **dans le dossier `murmure`** :
 
 ```bash
-git clone https://github.com/ggerganov/whisper.cpp.git  
-cd whisper.cpp
+cd murmure
+git clone https://github.com/ggerganov/whisper.cpp.git
 ```
 
 2. Compilez le projet :
 
 ```bash
+cd whisper.cpp
 cmake -B build  
 cmake --build build -j
 ```
@@ -111,7 +121,7 @@ chmod +x build/bin/whisper-cli
 
 4. C’est tout !
 
-Murmure détectera automatiquement le binaire `whisper-cli` si placé dans le dossier `whisper.cpp/build/bin`.  
+Murmure détectera automatiquement le binaire `whisper-cli` si présent dans `murmure/whisper.cpp/build/bin`.  
 Sinon, une erreur claire sera levée si vous utilisez `--device mps`.
 
 ---

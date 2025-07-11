@@ -5,4 +5,4 @@ models/vad
 build
 src/murmure.egg
 transcription/** 
-
+.DS_Store
