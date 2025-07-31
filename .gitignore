@@ -1,7 +1,6 @@
 **__pycache__**
 
 models/transcription
-models/vad
 build
 src/murmure.egg
 transcription/** 
